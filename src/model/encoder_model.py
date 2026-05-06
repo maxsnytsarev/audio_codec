@@ -1,18 +1,18 @@
 import torch.nn as nn
-from CasualConvolution import casualConv
+from CausalConvolution import causalConv
 
 
 class ResidualUnit(nn.Module):
     def __init__(self, in_channels, out_channels, dilation):
         super().__init__()
-        self.conv1 = casualConv(
+        self.conv1 = causalConv(
             in_channels=in_channels,
             out_channels=in_channels,
             kernel=7,
             stride=1,
             dilation=dilation,
         )
-        self.conv2 = casualConv(
+        self.conv2 = causalConv(
             in_channels=in_channels,
             out_channels=out_channels,
             kernel=1,
@@ -32,7 +32,7 @@ class EncoderBlock(nn.Module):
         self.resunit1 = ResidualUnit(in_channels // 2, in_channels // 2, dilation=1)
         self.resunit2 = ResidualUnit(in_channels // 2, in_channels // 2, dilation=3)
         self.resunit3 = ResidualUnit(in_channels // 2, in_channels // 2, dilation=9)
-        self.conv = casualConv(
+        self.conv = causalConv(
             in_channels // 2,
             out_channels=in_channels,
             kernel=2 * stride,
@@ -49,9 +49,9 @@ class EncoderBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, C, D, B_enc):
+    def __init__(self, C, D):
         super().__init__()
-        self.conv1 = casualConv(
+        self.conv1 = causalConv(
             in_channels=1, out_channels=C, kernel=7, stride=1, dilation=1
         )
         self.blocks = nn.ModuleList()
@@ -59,7 +59,7 @@ class Encoder(nn.Module):
         self.blocks.append(EncoderBlock(4 * C, stride=4))
         self.blocks.append(EncoderBlock(8 * C, stride=5))
         self.blocks.append(EncoderBlock(16 * C, stride=5))
-        self.conv2 = casualConv(
+        self.conv2 = causalConv(
             in_channels=16 * C, out_channels=D, kernel=3, stride=1, dilation=1
         )
 
