@@ -51,12 +51,10 @@ class LibriSpeechDataset(BaseDataset):
 
         big_dirs = [p for p in data_path.iterdir() if p.is_dir()]
         for i in tqdm(range(len(big_dirs))):
-            cur_big_dir_name = big_dirs[i]
-            cur_big_dir = data_path / cur_big_dir_name
+            cur_big_dir = big_dirs[i]
             cur_small_dirs = [p for p in cur_big_dir.iterdir() if p.is_dir()]
             for j in tqdm(range(len(cur_small_dirs))):
-                cur_small_dir_name = cur_small_dirs[j]
-                cur_small_dir = cur_big_dir / cur_small_dir_name
+                cur_small_dir = cur_small_dirs[j]
                 files = [f.name for f in cur_small_dir.iterdir() if f.is_file()]
                 for file in files:
                     file_type = Path(file).suffix
@@ -69,7 +67,6 @@ class LibriSpeechDataset(BaseDataset):
                             {
                                 "path": str(cur_small_dir / file),
                                 "length": length,
-                                "label": 0,
                             }
                         )
         write_json(index, str(data_path / "index.json"))
