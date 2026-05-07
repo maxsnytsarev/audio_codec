@@ -1,8 +1,10 @@
-import torch.nn as nn
 import torch
-from src.model.encoder_model import Encoder
+import torch.nn as nn
+
 from src.model.decoder import Decoder
+from src.model.encoder_model import Encoder
 from src.model.RQV import RQV
+
 
 class Generator(nn.Module):
     def __init__(self, C, D, N_q):
@@ -16,7 +18,11 @@ class Generator(nn.Module):
         rqv = self.rqv(x)
         x = rqv["logits"]
         x = self.decoder(x)["logits"]
-        return {"logits" : x, "commitment_loss": rqv["commitment_loss"], "indeces" : rqv["indeces"]}
+        return {
+            "logits": x,
+            "commitment_loss": rqv["commitment_loss"],
+            "indeces": rqv["indeces"],
+        }
 
     def __str__(self):
         """
