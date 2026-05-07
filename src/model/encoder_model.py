@@ -1,5 +1,5 @@
 import torch.nn as nn
-from CausalConvolution import causalConv
+from src.model.CausalConvolution import causalConv
 
 
 class ResidualUnit(nn.Module):

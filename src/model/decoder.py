@@ -1,6 +1,6 @@
 import torch.nn as nn
-from encoder_model import ResidualUnit
-from CausalConvolution import causalConv, causalConvTranspose
+from src.model.encoder_model import ResidualUnit
+from src.model.CausalConvolution import causalConv, causalConvTranspose
 
 class DecoderBlock(nn.Module):
     def __init__(self, out_channels, stride):

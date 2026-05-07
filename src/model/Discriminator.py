@@ -17,12 +17,18 @@ class DiscriminatorBlock(nn.Module):
         self.conv3 = nn.Conv1d(in_channels=1024, out_channels=1, stride=1, kernel_size=3)
 
     def forward(self, x):
-        x = self.lrelu(self.conv1(x))
+        f_m1 = self.conv1(x)
+        feature_maps = [f_m1]
+        x = self.lrelu(f_m1)
         for block in self.blocks:
-            x = self.lrelu(block(x))
-        x = self.lrelu(self.conv2(x))
+            f_m = block(x)
+            feature_maps.append(f_m)
+            x = self.lrelu(f_m)
+        f_m2 = self.conv2(x)
+        feature_maps.append(f_m2)
+        x = self.lrelu(f_m2)
         x = self.conv3(x)
-        return x
+        return x, feature_maps
 
 
 class WaveDiscriminator(nn.Module):
@@ -31,12 +37,12 @@ class WaveDiscriminator(nn.Module):
         self.disk1 = DiscriminatorBlock(in_channels=1)
         self.disk2 = DiscriminatorBlock(in_channels=1)
         self.disk3 = DiscriminatorBlock(in_channels=1)
-        self.pool= nn.AvgPool1d(kernel_size=4)
+        self.pool= nn.AvgPool1d(kernel_size=4, stride=2, padding=1)
     def forward(self, x):
-        x1 = self.disk1(x)
-        x2 = self.disk2(self.pool(x))
-        x3 = self.disk3(self.pool(self.pool(x)))
-        return {"logits": [x1, x2, x3]}
+        x1, f_m1 = self.disk1(x)
+        x2, f_m2 = self.disk2(self.pool(x))
+        x3, f_m3 = self.disk3(self.pool(self.pool(x)))
+        return {"logits": [x1, x2, x3], "feature_maps": [f_m1, f_m2, f_m3]}
 
 
     def __str__(self):
@@ -69,7 +75,7 @@ class ResidualUnitDick(nn.Module):
         y = x.clone()
         x = self.lrelu(self.conv1(x))
         x = self.conv2(x)
-        return self.skip(y) + x
+        return self.lrelu(self.skip(y) + x)
 
 class STFTDiscriminator(nn.Module):
     def __init__(self, w, h, F):
@@ -92,9 +98,11 @@ class STFTDiscriminator(nn.Module):
         x = torch.stft(x, self.w, hop_length=self.h, window=self.window, return_complex=True)
         x = torch.stack([x.real, x.imag], dim=1)
         x = x.permute(0, 1, 3, 2)
+        f_m = []
         for block in self.blocks:
             x = block(x)
-        return {"logits": self.conv2(x)}
+            f_m.append(x)
+        return {"logits": self.conv2(x), "feature_maps": [f_m]}
 
 
     def __str__(self):
