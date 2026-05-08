@@ -1,45 +1,80 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils import weight_norm
 
 
 class DiscriminatorBlock(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
         self.in_channels = in_channels
-        self.conv1 = nn.Conv1d(
-            in_channels=in_channels, out_channels=16, stride=1, kernel_size=15, padding=7
+        self.conv1 = weight_norm(
+            nn.Conv1d(
+                in_channels=in_channels,
+                out_channels=16,
+                stride=1,
+                kernel_size=15,
+                padding=7,
+            )
         )
         self.lrelu = nn.LeakyReLU(0.2)
         self.blocks = nn.ModuleList()
         self.blocks.append(
-            nn.Conv1d(
-                in_channels=16, out_channels=64, stride=4, kernel_size=41, groups=4, padding=20
+            weight_norm(
+                nn.Conv1d(
+                    in_channels=16,
+                    out_channels=64,
+                    stride=4,
+                    kernel_size=41,
+                    groups=4,
+                    padding=20,
+                )
             )
         )
         self.blocks.append(
-            nn.Conv1d(
-                in_channels=64, out_channels=256, stride=4, kernel_size=41, groups=16, padding=20
+            weight_norm(
+                nn.Conv1d(
+                    in_channels=64,
+                    out_channels=256,
+                    stride=4,
+                    kernel_size=41,
+                    groups=16,
+                    padding=20,
+                )
             )
         )
         self.blocks.append(
-            nn.Conv1d(
-                in_channels=256, out_channels=1024, stride=4, kernel_size=41, groups=64, padding=20
+            weight_norm(
+                nn.Conv1d(
+                    in_channels=256,
+                    out_channels=1024,
+                    stride=4,
+                    kernel_size=41,
+                    groups=64,
+                    padding=20,
+                )
             )
         )
         self.blocks.append(
-            nn.Conv1d(
-                in_channels=1024,
-                out_channels=1024,
-                stride=4,
-                kernel_size=41,
-                groups=256, padding=20
+            weight_norm(
+                nn.Conv1d(
+                    in_channels=1024,
+                    out_channels=1024,
+                    stride=4,
+                    kernel_size=41,
+                    groups=256,
+                    padding=20,
+                )
             )
         )
-        self.conv2 = nn.Conv1d(
-            in_channels=1024, out_channels=1024, stride=1, kernel_size=5, padding=2
+        self.conv2 = weight_norm(
+            nn.Conv1d(
+                in_channels=1024, out_channels=1024, stride=1, kernel_size=5, padding=2
+            )
         )
-        self.conv3 = nn.Conv1d(
-            in_channels=1024, out_channels=1, stride=1, kernel_size=3, padding=1
+        self.conv3 = weight_norm(
+            nn.Conv1d(
+                in_channels=1024, out_channels=1, stride=1, kernel_size=3, padding=1
+            )
         )
 
     def forward(self, x):

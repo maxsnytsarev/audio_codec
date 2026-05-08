@@ -128,15 +128,16 @@ class GanTrainer(BaseTrainer):
             self.model.eval()
             generated = self.model.generate(**batch)
             batch.update(generated)
-            discr = self.model.discriminate(
-                data_object=batch["data_object"], logits=batch["logits"]
-            )
-            batch.update(discr)
-            g_loss = self.generator_criterion(**batch)
-            batch.update(g_loss)
-            batch["loss"] = g_loss["loss"].detach()
-            batch["generator_loss"] = g_loss["loss"].detach()
-            batch["discriminator_loss"] = torch.tensor(0.0, device=batch["loss"].device)
+            zero = torch.zeros((), device=batch["logits"].device)
+
+            batch["loss"] = zero
+            batch["generator_loss"] = zero
+            batch["discriminator_loss"] = zero
+
+            batch["adv_loss"] = zero
+            batch["feat_loss"] = zero
+            batch["rec_loss"] = zero
+            batch["commitment_loss"] = zero
         for loss_name in self.config.writer.loss_names:
             metrics.update(loss_name, batch[loss_name].item())
 

@@ -172,7 +172,7 @@ class BaseTrainer:
 
             # print logged information to the screen
             for key, value in logs.items():
-                self.logger.info(f"    {key:15s}: {value}")
+                self.logger.info(f"    {key: 15s}: {value}")
 
             # evaluate model performance according to configured metric,
             # save best checkpoint as model_best
@@ -464,15 +464,26 @@ class BaseTrainer:
                 checkpoint-epochEpochNumber.pth)
         """
         arch = type(self.model).__name__
-        state = {
-            "arch": arch,
-            "epoch": epoch,
-            "state_dict": self.model.state_dict(),
-            "optimizer": self.optimizer.state_dict(),
-            "lr_scheduler": self.lr_scheduler.state_dict(),
-            "monitor_best": self.mnt_best,
-            "config": self.config,
-        }
+        if self.lr_scheduler is not None:
+            state = {
+                "arch": arch,
+                "epoch": epoch,
+                "state_dict": self.model.state_dict(),
+                "optimizer": self.optimizer.state_dict(),
+                "lr_scheduler": self.lr_scheduler.state_dict(),
+                "monitor_best": self.mnt_best,
+                "config": self.config,
+            }
+        else:
+            state = {
+                "arch": arch,
+                "epoch": epoch,
+                "state_dict": self.model.state_dict(),
+                "optimizer": self.optimizer.state_dict(),
+                "lr_scheduler": 0,
+                "monitor_best": self.mnt_best,
+                "config": self.config,
+            }
         filename = str(self.checkpoint_dir / f"checkpoint-epoch{epoch}.pth")
         if not (only_best and save_best):
             torch.save(state, filename)

@@ -73,8 +73,8 @@ class GeneratorLoss(nn.Module):
             eps = 1e-12
             log_res = torch.log(real_spec + eps) - torch.log(fake_spec + eps)
             l_rec += (
-                torch.linalg.norm(res, dim=1, ord=1).sum(dim=-1).mean()
-                + alpha * torch.linalg.norm(log_res, dim=1, ord=2).sum(dim=-1).mean()
+                torch.linalg.norm(res, dim=1, ord=1).mean()
+                + alpha * torch.linalg.norm(log_res, dim=1, ord=2).mean()
             )
             i += 1
 
