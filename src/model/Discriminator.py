@@ -104,6 +104,7 @@ class ResidualUnitDick(nn.Module):
             out_channels=m * in_channels,
             kernel_size=(st + 2, sf + 2),
             stride=(st, sf),
+            padding=(1, 1),
         )
         self.lrelu = nn.LeakyReLU(0.2)
         self.skip = nn.Conv2d(
@@ -111,6 +112,7 @@ class ResidualUnitDick(nn.Module):
             out_channels=m * in_channels,
             kernel_size=(st + 2, sf + 2),
             stride=(st, sf),
+            padding=(1, 1),
         )
 
     def forward(self, x):
@@ -121,12 +123,12 @@ class ResidualUnitDick(nn.Module):
 
 
 class STFTDiscriminator(nn.Module):
-    def __init__(self, w, h, F):
+    def __init__(self):
         super().__init__()
-        self.F = F
-        self.register_buffer("window", torch.hann_window(w))
-        self.w = w
-        self.h = h
+        self.w = 1024
+        self.h = 256
+        self.register_buffer("window", torch.hann_window(self.w))
+        F = self.w // 2
         C = 2
         self.blocks = nn.ModuleList()
         self.blocks.append(ResidualUnitDick(in_channels=C, m=2, s=(1, 2)))
@@ -144,6 +146,7 @@ class STFTDiscriminator(nn.Module):
         x = torch.stft(
             x, self.w, hop_length=self.h, window=self.window, return_complex=True
         )
+        x = x[:, :-1, :]
         x = torch.stack([x.real, x.imag], dim=1)
         x = x.permute(0, 1, 3, 2)
         f_m = []

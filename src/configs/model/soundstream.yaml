@@ -1,0 +1,4 @@
+_target_: src.model.FullModel
+C: 32
+D: 512
+N_q: 8

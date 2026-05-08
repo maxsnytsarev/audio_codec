@@ -59,8 +59,15 @@ class BaseDataset(Dataset):
         data_path = data_dict["path"]
         data_object = self.load_object(data_path)
         data_length = data_dict["length"]
+        sample_rate = data_dict["sample_rate"]
+        original_sample_rate = data_dict["original_sample_rate"]
 
-        instance_data = {"data_object": data_object, "length": data_length}
+        instance_data = {
+            "data_object": data_object,
+            "length": data_length,
+            "sample_rate": sample_rate,
+            "original_sample_rate": original_sample_rate,
+        }
         instance_data = self.preprocess_data(instance_data)
 
         return instance_data
@@ -146,6 +153,10 @@ class BaseDataset(Dataset):
                 "Each dataset item should include field 'length'"
                 " - audio file length."
             )
+            assert "sample_rate" in entry, "no sample rate for dataset item"
+            assert (
+                "original_sample_rate" in entry
+            ), "no original sample rate for dataset item"
 
     @staticmethod
     def _sort_index(index):

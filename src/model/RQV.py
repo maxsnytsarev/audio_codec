@@ -1,12 +1,12 @@
-import torch.nn as nn
-import torch
 import numpy as np
+import torch
+import torch.nn as nn
 
 
 def k_means(Y, k, max_iters=100):
-    if Y.shape[0] < k:
-        raise ValueError('Y is smaller than k')
-    indeces = torch.tensor(np.random.choice(Y.shape[0], k, replace=False)).to(Y.device)
+    # if Y.shape[0] < k:
+    #     raise ValueError('Y is smaller than k')
+    indeces = torch.randint(0, Y.shape[0], size=(k,), device=Y.device)
     ans = Y[indeces].clone()
     for _ in range(max_iters):
         objective = torch.sqrt((Y[:, None, :] - ans[None, :, :]).pow(2).sum(dim=-1))
@@ -23,12 +23,13 @@ def k_means(Y, k, max_iters=100):
 
     return ans, indeces
 
+
 class RQV(nn.Module):
     def __init__(self, N_q, D):
         super().__init__()
         self.N_q = N_q
         self.r = 75
-        self.N = 2**(75 // N_q + 1)
+        self.N = 2 ** (75 // N_q + 1)
         self.quntizers = nn.ModuleList()
         self.D = D
         for i in range(N_q):
@@ -41,7 +42,11 @@ class RQV(nn.Module):
         self.register_buffer("init", torch.tensor(False))
 
     def find(self, y, i):
-        objective = y.pow(2).sum(dim=-1)[..., None] + self.quntizers[i].weight.pow(2).sum(dim=-1)[None, None, ...] - 2 * y @ self.quntizers[i].weight.T
+        objective = (
+            y.pow(2).sum(dim=-1)[..., None]
+            + self.quntizers[i].weight.pow(2).sum(dim=-1)[None, None, ...]
+            - 2 * y @ self.quntizers[i].weight.T
+        )
         indeces = torch.argmin(objective, dim=-1)
         return self.quntizers[i](indeces), indeces
 
@@ -84,8 +89,12 @@ class RQV(nn.Module):
                         self.N_i[i, j] = cur_count[i, j]
                         self.m_i[i, j] = vec_count[i, j]
                     else:
-                        self.N_i[i, j] = self.N_i[i, j] * self.gamma + cur_count[i, j] * (1 - self.gamma)
-                        self.m_i[i, j] = self.m_i[i, j] * self.gamma + vec_count[i, j] * (1 - self.gamma)
+                        self.N_i[i, j] = self.N_i[i, j] * self.gamma + cur_count[
+                            i, j
+                        ] * (1 - self.gamma)
+                        self.m_i[i, j] = self.m_i[i, j] * self.gamma + vec_count[
+                            i, j
+                        ] * (1 - self.gamma)
                 new_weight = self.m_i[i] / self.N_i[i].clamp(min=1e-8)[..., None]
                 dead = self.N_i[i] < 2
                 if need_init:
@@ -94,7 +103,12 @@ class RQV(nn.Module):
                 else:
                     if dead.any():
                         flat_res = cur_res.reshape(-1, self.D)
-                        random_ids = torch.randint(0, flat_res.shape[0], size=(dead.sum().item(),), device=cur_res.device)
+                        random_ids = torch.randint(
+                            0,
+                            flat_res.shape[0],
+                            size=(dead.sum().item(),),
+                            device=cur_res.device,
+                        )
                         new_weight[dead] = flat_res[random_ids]
                 self.quntizers[i].weight.copy_(new_weight)
                 residual -= Q_i
@@ -105,7 +119,11 @@ class RQV(nn.Module):
         cur_y = cur_y.transpose(2, 1)
         commitment_loss = torch.mean((cur_y.detach() - y) ** 2)
         all_indeces = torch.stack(all_indeces, dim=0)
-        return {"logits": y + (cur_y - y).detach(), "commitment_loss": commitment_loss, "indeces": all_indeces}
+        return {
+            "logits": y + (cur_y - y).detach(),
+            "commitment_loss": commitment_loss,
+            "indeces": all_indeces,
+        }
 
     def __str__(self):
         """

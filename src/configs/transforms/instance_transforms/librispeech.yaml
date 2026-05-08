@@ -1,0 +1,4 @@
+train:
+  data_object:
+    _target_: src.transforms.Transform
+inference: null

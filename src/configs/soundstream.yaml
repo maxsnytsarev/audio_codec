@@ -1,20 +1,32 @@
 defaults:
-  - model: baseline
+  - model: soundstream
   - writer: cometml
-  - metrics: none
+  - metrics: audio
   - datasets: librispeech
   - dataloader: librispeech
   - transforms: librispeech
   - _self_
-optimizer:
+generator_criterion:
+  _target_: src.loss.GeneratorLoss
+
+discriminator_criterion:
+  _target_: src.loss.DiscriminatorLoss
+
+generator_optimizer:
   _target_: torch.optim.Adam
-  lr: 3e-4
-lr_scheduler:
-  _target_: torch.optim.lr_scheduler.StepLR
-  gamma: 0.9
-  step_size: ${trainer.epoch_len}
-loss_function:
-  _target_: src.loss.ExampleLoss
+  lr: 0.0001
+  betas: [0.5, 0.9]
+
+discriminator_optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0001
+  betas: [0.5, 0.9]
+
+
+generator_lr_scheduler: null
+
+discriminator_lr_scheduler: null
+
 trainer:
   log_step: 50
   n_epochs: 100

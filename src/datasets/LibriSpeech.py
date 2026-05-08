@@ -61,12 +61,15 @@ class LibriSpeechDataset(BaseDataset):
                     if file_type == ".flac":
                         info = torchaudio.info(str(cur_small_dir / file))
                         sr = info.sample_rate
-                        length = info.num_frames / info.sample_rate
-                        assert sr == 16000
+                        target_sr = 16000
+                        length = int(info.num_frames * target_sr / sr)
+
                         index.append(
                             {
                                 "path": str(cur_small_dir / file),
                                 "length": length,
+                                "sample_rate": target_sr,
+                                "original_sample_rate": sr,
                             }
                         )
         write_json(index, str(data_path / "index.json"))
@@ -74,6 +77,11 @@ class LibriSpeechDataset(BaseDataset):
 
     def load_object(self, path):
         data_object, sr = torchaudio.load(str(path))
-        assert sr == 16000
-        assert data_object.shape[0] == 1
+        if data_object.shape[0] > 1:
+            data_object = data_object.mean(dim=0, keepdim=True)
+
+        if sr != 16000:
+            data_object = torchaudio.functional.resample(
+                data_object, orig_freq=sr, new_freq=16000
+            )
         return data_object

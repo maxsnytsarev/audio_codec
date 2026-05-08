@@ -100,7 +100,7 @@ class GeneratorLoss(nn.Module):
         loss = 1 * l_adv + 100 * l_feat + 1 * l_rec + 1 * commitment_loss
         return {
             "loss": loss,
-            "generator_loss": loss,
+            "generator_loss": loss.detach(),
             "adv_loss": l_adv.detach(),
             "feat_loss": l_feat.detach(),
             "rec_loss": l_rec.detach(),
@@ -144,4 +144,4 @@ class DiscriminatorLoss(nn.Module):
             T_k = cur.shape[-1]
             loss += (1 / T_k) * cur.sum(-1).mean()
         loss /= len(false_logits)
-        return {"loss": loss, "discriminator_loss": loss}
+        return {"loss": loss, "discriminator_loss": loss.detach()}

@@ -1,0 +1,15 @@
+device: "auto"
+train: # metrics that are calculated during training
+  - _target_: src.metrics.StoiMetric
+    sample_rate: 16000
+    device: ${metrics.device}
+    name: "TRAIN_STOI" # just an example to see difference
+inference: # metrics that are calculated during inference (eval)
+  - _target_: src.metrics.StoiMetric
+    sample_rate: 16000
+    device: ${metrics.device}
+    name: "STOI"
+  - _target_: src.metrics.NISQAMetric
+    sample_rate: 16000
+    device: ${metrics.device}
+    name: "NISQA"
