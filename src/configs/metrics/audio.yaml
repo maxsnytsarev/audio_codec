@@ -1,4 +1,5 @@
 device: "auto"
+train: []
 inference: # metrics that are calculated during inference (eval)
   - _target_: src.metrics.StoiMetric
     sample_rate: 16000
