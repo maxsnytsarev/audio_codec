@@ -20,6 +20,8 @@ def collate_fn(dataset_items: list[dict]):
     # example of collate_fn
     length = torch.tensor([elem["data_object"].shape[-1] for elem in dataset_items])
     max_len = length.max().item()
+    if max_len % 200 != 0:
+        max_len += 200 - max_len % 200
     new_dataset_items = []
     for elem in dataset_items:
         cur_len = elem["data_object"].shape[-1]
