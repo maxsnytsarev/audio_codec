@@ -129,7 +129,8 @@ class STFTDiscriminator(nn.Module):
         self.h = 256
         self.register_buffer("window", torch.hann_window(self.w))
         F = self.w // 2
-        C = 2
+        C = 32
+        self.pre = nn.Conv2d(2, 32, kernel_size=(7, 7), padding=(3, 3))
         self.blocks = nn.ModuleList()
         self.blocks.append(ResidualUnitDick(in_channels=C, m=2, s=(1, 2)))
         self.blocks.append(ResidualUnitDick(in_channels=2 * C, m=2, s=(2, 2)))
@@ -150,6 +151,7 @@ class STFTDiscriminator(nn.Module):
         x = torch.stack([x.real, x.imag], dim=1)
         x = x.permute(0, 1, 3, 2)
         f_m = []
+        x = self.pre(x)
         for block in self.blocks:
             x = block(x)
             f_m.append(x)
