@@ -135,15 +135,14 @@ class Inferencer(BaseTrainer):
         for i in range(batch_size):
             # clone because of
             # https://github.com/pytorch/pytorch/issues/1995
-            logits = batch["logits"][i].clone()
-            label = batch["labels"][i].clone()
-            pred_label = logits.argmax(dim=-1)
 
             output_id = current_id + i
 
             output = {
-                "pred_label": pred_label,
-                "label": label,
+                "real": batch["data_object"][i].detach().cpu(),
+                "pred": batch["logits"][i].detach().cpu(),
+                "sample_rate": int(batch["sample_rate"][i]),
+                "original_length": int(batch["original_length"][i]),
             }
 
             if self.save_path is not None:
