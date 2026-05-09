@@ -134,6 +134,7 @@ class BaseTrainer:
         self.checkpoint_dir = (
             ROOT_PATH / config.trainer.save_dir / config.writer.run_name
         )
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
         if config.trainer.get("resume_from") is not None:
             resume_path = self.checkpoint_dir / config.trainer.resume_from
@@ -264,6 +265,12 @@ class BaseTrainer:
         self.is_train = False
         self.model.eval()
         self.evaluation_metrics.reset()
+        all_metrics = self.metrics["inference"]
+        nisqa_every = self.config.trainer["nisqa_every"]
+        if epoch % nisqa_every != 0:
+            self.metrics["inference"] = [
+                m for m in all_metrics if m.name != "NISQA"
+            ]
         with torch.no_grad():
             for batch_idx, batch in tqdm(
                 enumerate(dataloader),
