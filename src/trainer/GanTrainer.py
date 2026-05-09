@@ -142,5 +142,7 @@ class GanTrainer(BaseTrainer):
             metrics.update(loss_name, batch[loss_name].item())
 
         for met in metric_funcs:
+            if not self.train and met.name == "NISQA" and self._last_epoch % self.config.trainer["nisqa_every"] != 0:
+                continue
             metrics.update(met.name, met(**batch))
         return batch

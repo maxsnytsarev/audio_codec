@@ -5,7 +5,7 @@ inference: # metrics that are calculated during inference (eval)
     sample_rate: 16000
     device: ${metrics.device}
     name: "STOI"
-#  - _target_: src.metrics.NISQAMetric
-#    sample_rate: 16000
-#    device: ${metrics.device}
-#    name: "NISQA"
+  - _target_: src.metrics.NISQAMetric
+    sample_rate: 16000
+    device: ${metrics.device}
+    name: "NISQA"
