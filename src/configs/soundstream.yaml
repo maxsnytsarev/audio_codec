@@ -31,6 +31,7 @@ trainer:
   log_step: 25
   n_epochs: 90
   epoch_len: 500
+  nisqa_every: 5
   device_tensors: ["data_object"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"
