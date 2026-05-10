@@ -1,8 +1,6 @@
 import torch
-from torchmetrics.audio import (
-    NonIntrusiveSpeechQualityAssessment,
-    ShortTimeObjectiveIntelligibility,
-)
+from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
+from torchmetrics.audio.nisqa import NonIntrusiveSpeechQualityAssessment
 
 from src.metrics.base_metric import BaseMetric
 
