@@ -4,8 +4,6 @@ import torch.nn as nn
 
 
 def k_means(Y, k, max_iters=100):
-    # if Y.shape[0] < k:
-    #     raise ValueError('Y is smaller than k')
     indeces = torch.randint(0, Y.shape[0], size=(k,), device=Y.device)
     ans = Y[indeces].clone()
     for _ in range(max_iters):
