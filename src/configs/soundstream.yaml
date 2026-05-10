@@ -29,6 +29,7 @@ discriminator_lr_scheduler: null
 
 trainer:
   log_step: 25
+  audio_log_step: 250
   n_epochs: 90
   epoch_len: 500
   nisqa_every: 5

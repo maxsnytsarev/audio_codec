@@ -146,3 +146,25 @@ class GanTrainer(BaseTrainer):
                 continue
             metrics.update(met.name, met(**batch))
         return batch
+
+    def _log_batch(self, batch_idx, batch, mode="train"):
+        """
+        Log data from batch. Calls self.writer.add_* to log data
+        to the experiment tracker.
+
+        Args:
+            batch_idx (int): index of the current batch.
+            batch (dict): dict-based batch after going through
+                the 'process_batch' function.
+            mode (str): train or inference. Defines which logging
+                rules to apply.
+        """
+        # method to log data from you batch
+        # such as audio, text or images, for example
+
+        # logging scheme might be different for different partitions
+        real = batch["data_object"][0]
+        fake = batch["logits"][0]
+        sr = 16000
+        self.writer.add_audio("real_audio", real, sample_rate=sr)
+        self.writer.add_audio("generated_audio", fake, sample_rate=sr)

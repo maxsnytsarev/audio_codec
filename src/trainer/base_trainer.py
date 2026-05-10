@@ -65,6 +65,7 @@ class BaseTrainer:
 
         self.logger = logger
         self.log_step = config.trainer.get("log_step", 50)
+        self.audio_log_step = config.trainer.get("audio_log_step", 250)
 
         self.model = model
         self.criterion = criterion
@@ -234,11 +235,13 @@ class BaseTrainer:
                         "learning rate", self.lr_scheduler.get_last_lr()[0]
                     )
                 self._log_scalars(self.train_metrics)
-                self._log_batch(batch_idx, batch)
                 # we don't want to reset train metrics at the start of every epoch
                 # because we are interested in recent train metrics
                 last_train_metrics = self.train_metrics.result()
                 self.train_metrics.reset()
+            if batch_idx % self.audio_log_step == 0:
+                self.writer.set_step((epoch - 1) * self.epoch_len + batch_idx)
+                self._log_batch(batch_idx, batch)
             if batch_idx + 1 >= self.epoch_len:
                 break
 
