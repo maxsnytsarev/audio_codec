@@ -66,7 +66,7 @@ class RQV(nn.Module):
         residual = y.clone()
         all_indeces = []
         with torch.no_grad():
-            need_init = not self.init.item()
+            need_init = self.training and (not self.init.item())
             for i in range(self.N_q):
                 cur_res = residual.clone()
                 flat_res = cur_res.reshape(-1, self.D)
@@ -74,47 +74,52 @@ class RQV(nn.Module):
                     centers, _ = k_means(flat_res, self.N)
                     self.quntizers[i].weight.copy_(centers)
                 Q_i, indeces = self.find(cur_res, i)
-                flat_indeces = indeces.reshape(-1)
+
                 all_indeces.append(indeces)
                 cur_y += Q_i
-                cur_count = torch.bincount(flat_indeces, minlength=self.N).to(
-                    residual.device
-                )
-                vec_count = torch.zeros(self.N, self.D, device=residual.device)
-                vec_count.index_add_(0, flat_indeces, flat_res)
-                if need_init:
-                    self.N_i[i] = cur_count.clone()
-                    self.m_i[i] = vec_count.clone()
-                else:
-                    self.N_i[i] = self.N_i[i] * self.gamma + cur_count * (
-                        1 - self.gamma
+                if self.training:
+                    flat_indeces = indeces.reshape(-1)
+                    cur_count = torch.bincount(flat_indeces, minlength=self.N).to(
+                        residual.device
                     )
-                    self.m_i[i] = self.m_i[i] * self.gamma + vec_count * (
-                        1 - self.gamma
-                    )
-                new_weight = self.m_i[i] / self.N_i[i].clamp(min=1e-8)[..., None]
-                if need_init:
-                    empty = self.N_i[i] == 0
-                    new_weight[empty] = self.quntizers[i].weight[empty]
-                else:
-                    if self.step.item() % self.die_every == 0:
-                        dead = self.N_i[i] < 2
-                        if dead.any():
-                            flat_res = cur_res.reshape(-1, self.D)
-                            random_ids = torch.randint(
-                                0,
-                                flat_res.shape[0],
-                                size=(dead.sum().item(),),
-                                device=cur_res.device,
-                            )
-                            new_weight[dead] = flat_res[random_ids]
-                            self.N_i[i, dead] = 2
-                            self.m_i[i, dead] = flat_res[random_ids] * 2
-                self.quntizers[i].weight.copy_(new_weight)
+                    vec_count = torch.zeros(self.N, self.D, device=residual.device)
+                    vec_count.index_add_(0, flat_indeces, flat_res)
+                    if need_init:
+                        self.N_i[i] = cur_count.clone()
+                        self.m_i[i] = vec_count.clone()
+                    else:
+                        self.N_i[i] = self.N_i[i] * self.gamma + cur_count * (
+                            1 - self.gamma
+                        )
+                        self.m_i[i] = self.m_i[i] * self.gamma + vec_count * (
+                            1 - self.gamma
+                        )
+                    new_weight = self.m_i[i] / self.N_i[i].clamp(min=1e-8)[..., None]
+                    if need_init:
+                        empty = self.N_i[i] == 0
+                        new_weight[empty] = self.quntizers[i].weight[empty]
+                    else:
+                        if self.step.item() % self.die_every == 0:
+                            dead = self.N_i[i] < 2
+                            if dead.any():
+                                flat_res = cur_res.reshape(-1, self.D)
+                                random_ids = torch.randint(
+                                    0,
+                                    flat_res.shape[0],
+                                    size=(dead.sum().item(),),
+                                    device=cur_res.device,
+                                )
+                                new_weight[dead] = flat_res[random_ids]
+                                self.N_i[i, dead] = 2
+                                self.m_i[i, dead] = flat_res[random_ids] * 2
+                    self.quntizers[i].weight.copy_(new_weight)
                 residual -= Q_i
-            if need_init:
-                self.init.fill_(True)
-            self.step += 1
+
+            if self.training:
+                if need_init:
+                    self.init.fill_(True)
+
+                self.step += 1
 
         y = y.transpose(2, 1)
         cur_y = cur_y.transpose(2, 1)
