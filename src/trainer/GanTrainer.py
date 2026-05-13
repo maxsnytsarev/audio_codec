@@ -9,7 +9,9 @@ from src.datasets.data_utils import inf_loop
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
 from src.utils.io_utils import ROOT_PATH
-
+import torchaudio
+import matplotlib.pyplot as plt
+import numpy as np
 
 class GanTrainer(BaseTrainer):
     """
@@ -58,6 +60,16 @@ class GanTrainer(BaseTrainer):
             lr_scheduler=generator_lr_scheduler,
             **kwargs
         )
+
+        s = 1024
+        self.mel_spec = torchaudio.transforms.MelSpectrogram(
+            sample_rate=16000,
+            n_fft=s,
+            win_length=s,
+            hop_length=s // 4,
+            n_mels=64,
+            power=1.0,
+        ).to(self.device)
 
         self.generator_criterion = generator_criterion
         self.discriminator_criterion = discriminator_criterion
@@ -142,10 +154,43 @@ class GanTrainer(BaseTrainer):
             metrics.update(loss_name, batch[loss_name].item())
 
         for met in metric_funcs:
-            if not self.train and met.name == "NISQA" and self._last_epoch % self.config.trainer["nisqa_every"] != 0:
+            if not self.is_train and met.name == "NISQA" and self._last_epoch % self.config.trainer["nisqa_every"] != 0:
                 continue
             metrics.update(met.name, met(**batch))
         return batch
+
+    def log_perp(self, batch):
+        if self.writer is None:
+            return
+        n_q = 8
+        N = 1024
+        vals = []
+        indeces = batch["indeces"].detach()
+        for q in range(n_q):
+            flat_indeces = indeces[q].reshape(-1)
+            cur_count = torch.bincount(flat_indeces, minlength=N)
+            prob = cur_count / cur_count.sum()
+            prob = prob[prob > 0]
+            vals.append(torch.exp(-(prob * torch.log(prob)).sum()))
+        perp = torch.stack(vals).mean() / N
+        self.writer.add_scalar("perplexity", perp.item())
+
+    def mel(self, wav):
+        with torch.no_grad():
+            mel = self.mel_spec(wav)
+            mel = torch.log(mel + 1e-12)
+            mel = mel.squeeze(0)
+            mel = mel.detach().cpu().numpy()
+        fig, ax = plt.subplots(figsize=(8, 4))
+        im = ax.imshow(mel, origin="lower", aspect="auto", cmap="magma")
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Freq")
+        fig.colorbar(im, ax=ax)
+        fig.tight_layout()
+        fig.canvas.draw()
+        image = np.asarray(fig.canvas.buffer_rgba())[:, :, :3].copy()
+        plt.close(fig)
+        return image
 
     def _log_batch(self, batch_idx, batch, mode="train"):
         """
@@ -163,8 +208,13 @@ class GanTrainer(BaseTrainer):
         # such as audio, text or images, for example
 
         # logging scheme might be different for different partitions
+        L = int(batch["original_length"][0].item())
         real = batch["data_object"][0]
         fake = batch["logits"][0]
+        real = real[:, :L]
+        fake = fake[:, :L]
         sr = 16000
         self.writer.add_audio("real_audio", real, sample_rate=sr)
         self.writer.add_audio("generated_audio", fake, sample_rate=sr)
+        self.writer.add_image("real_mel", self.mel(real))
+        self.writer.add_image("generated_mel", self.mel(fake))

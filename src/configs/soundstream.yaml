@@ -28,11 +28,11 @@ generator_lr_scheduler: null
 discriminator_lr_scheduler: null
 
 trainer:
-  log_step: 25
+  log_step: 5
   audio_log_step: 250
   n_epochs: 90
   epoch_len: 500
-  nisqa_every: 5
+  nisqa_every: 10
   device_tensors: ["data_object"] # which tensors should be on device (ex. GPU)
   resume_from: null # null or path to the checkpoint dir with *.pth and config.yaml
   device: auto # device name or "auto"

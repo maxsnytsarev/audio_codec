@@ -235,6 +235,7 @@ class BaseTrainer:
                         "learning rate", self.lr_scheduler.get_last_lr()[0]
                     )
                 self._log_scalars(self.train_metrics)
+                self.log_perp(batch)
                 # we don't want to reset train metrics at the start of every epoch
                 # because we are interested in recent train metrics
                 last_train_metrics = self.train_metrics.result()
@@ -253,6 +254,9 @@ class BaseTrainer:
             logs.update(**{f"{part}_{name}": value for name, value in val_logs.items()})
 
         return logs
+
+    def log_perp(self, batch):
+        pass
 
     def _evaluation_epoch(self, epoch, part, dataloader):
         """
