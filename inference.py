@@ -9,7 +9,8 @@ from src.trainer import Inferencer
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
 from pathlib import Path
-
+import json
+import os
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -42,10 +43,16 @@ def main(config):
         device=device,
         dataloaders=dataloaders,
         batch_transforms=batch_transforms,
-        save_path=save_path,
+        save_path=None,
     )
 
-    inferencer.run_inference()
+    logs = inferencer.run_inference()
+    print(logs)
+    save_path = config.inferencer.get("save_path")
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    with open(Path(save_path) / "metrics.json", "w") as f:
+        json.dump(logs, f, indent=4)
 
 
 if __name__ == "__main__":

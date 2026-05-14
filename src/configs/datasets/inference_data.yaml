@@ -2,3 +2,8 @@ test_clean:
   _target_: src.datasets.LibriSpeechDataset
   name: "test-clean"
   instance_transforms: ${transforms.instance_transforms.inference}
+
+test-russian:
+  _target_: src.datasets.LibriSpeechDataset
+  name: "test-russian"
+  instance_transforms: ${transforms.instance_transforms.inference}
