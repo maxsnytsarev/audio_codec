@@ -49,29 +49,21 @@ class LibriSpeechDataset(BaseDataset):
             raise FileNotFoundError(f"no data: {data_path}")
         data_path.mkdir(exist_ok=True, parents=True)
 
-        big_dirs = [p for p in data_path.iterdir() if p.is_dir()]
-        for i in tqdm(range(len(big_dirs))):
-            cur_big_dir = big_dirs[i]
-            cur_small_dirs = [p for p in cur_big_dir.iterdir() if p.is_dir()]
-            for j in tqdm(range(len(cur_small_dirs))):
-                cur_small_dir = cur_small_dirs[j]
-                files = [f.name for f in cur_small_dir.iterdir() if f.is_file()]
-                for file in files:
-                    file_type = Path(file).suffix
-                    if file_type == ".flac":
-                        info = torchaudio.info(str(cur_small_dir / file))
-                        sr = info.sample_rate
-                        target_sr = 16000
-                        length = int(info.num_frames * target_sr / sr)
-
-                        index.append(
-                            {
-                                "path": str(cur_small_dir / file),
-                                "length": length,
-                                "sample_rate": target_sr,
-                                "original_sample_rate": sr,
-                            }
-                        )
+        all_files = list(data_path.rglob("*.wav")) + list(data_path.rglob("*.flac"))
+        all_files.sort()
+        for file_path in tqdm(all_files):
+            info = torchaudio.info(str(file_path))
+            sr = info.sample_rate
+            target_sr = 16000
+            length = int(info.num_frames * target_sr / sr)
+            index.append(
+                {
+                    "path": str(file_path),
+                    "length": length,
+                    "sample_rate": target_sr,
+                    "original_sample_rate": sr,
+                }
+            )
         write_json(index, str(data_path / "index.json"))
         return index
 
