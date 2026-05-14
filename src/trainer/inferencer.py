@@ -3,7 +3,8 @@ from tqdm.auto import tqdm
 
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
-
+import gdown
+import os
 
 class Inferencer(BaseTrainer):
     """
@@ -75,6 +76,15 @@ class Inferencer(BaseTrainer):
             )
         else:
             self.evaluation_metrics = None
+
+        link = config.inferencer.get("google_link")
+        check = config.inferencer.get("from_pretrained")
+        if not os.path.exists(check):
+            os.mkdir("model_weights")
+            print("Downloading model weights...")
+            file_id = link
+            gdown.download(id=file_id, output=check, quiet=False)
+            print("Successfully saved weights")
 
         if not skip_model_load:
             # init model
