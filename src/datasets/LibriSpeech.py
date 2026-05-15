@@ -18,7 +18,7 @@ class LibriSpeechDataset(BaseDataset):
     """
 
     def __init__(self, name="train", *args, **kwargs):
-        index_path = ROOT_PATH / "data" / "LibriSpeech" / name / "index.json"
+        index_path = ROOT_PATH / "data" / name / "index.json"
 
         # each nested dataset class must have an index field that
         # contains list of dicts. Each dict contains information about
@@ -44,7 +44,7 @@ class LibriSpeechDataset(BaseDataset):
                 such as label and object path.
         """
         index = []
-        data_path = ROOT_PATH / "data" / "LibriSpeech" / name
+        data_path = ROOT_PATH / "data" / name
         if not data_path.exists():
             raise FileNotFoundError(f"no data: {data_path}")
         data_path.mkdir(exist_ok=True, parents=True)
