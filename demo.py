@@ -43,9 +43,11 @@ def get_reconstructed_audio(wav):
         return None
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = FullModel(C=32, D=512, N_q=8).to(device)
-    check = "demo_dir/last_checkpoint.pth"
+    check = "model_weights/model_weights.pth"
     if not os.path.exists(check):
-        file_id = "1DAafPFX3gpC1xFy9yrQYu4yoM2Mj7WcS"
+        os.mkdir("model_weights")
+        print("Downloading model weights...")
+        file_id = "1M_wyp9oSxldQ49ezXeErBeu-F0fJ9fa0"
         gdown.download(id=file_id, output=check, quiet=False)
         print("Successfully saved weights")
     checkpoint = torch.load(check, map_location=device)
