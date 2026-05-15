@@ -48,11 +48,7 @@ def main(config):
 
     logs = inferencer.run_inference()
     print(logs)
-    save_path = config.inferencer.get("save_path")
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
-    with open(Path(save_path) / "metrics.json", "w") as f:
-        json.dump(logs, f, indent=4)
+
 
 
 if __name__ == "__main__":
