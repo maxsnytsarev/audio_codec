@@ -1,0 +1,8 @@
+numpy>=2.0,<2.6
+torch
+torchaudio
+torchmetrics
+torchvision
+tqdm
+requests
+gdown

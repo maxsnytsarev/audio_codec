@@ -50,7 +50,7 @@ def get_reconstructed_audio(wav):
         file_id = "1M_wyp9oSxldQ49ezXeErBeu-F0fJ9fa0"
         gdown.download(id=file_id, output=check, quiet=False)
         print("Successfully saved weights")
-    checkpoint = torch.load(check, map_location=device)
+    checkpoint = torch.load(check, map_location=device, weights_only=False)
     state_dict = checkpoint["state_dict"]
     model.load_state_dict(state_dict)
     model.eval()
