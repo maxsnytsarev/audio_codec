@@ -7,3 +7,8 @@ test-russian:
   _target_: src.datasets.LibriSpeechDataset
   name: "test-russian"
   instance_transforms: ${transforms.instance_transforms.inference}
+
+test-quantitative:
+  _target_: src.datasets.LibriSpeechDataset
+  name: "test-quantitative"
+  instance_transforms: ${transforms.instance_transforms.inference}

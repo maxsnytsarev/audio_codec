@@ -9,8 +9,9 @@ from src.trainer import Inferencer
 from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 
 from pathlib import Path
-import json
-import os
+import logging
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -48,7 +49,13 @@ def main(config):
 
     logs = inferencer.run_inference()
     print(logs)
-
+    project_config = OmegaConf.to_container(config)
+    logger = logging.getLogger("inference")
+    writer = instantiate(config.writer, logger, project_config)
+    for tests in logs:
+        writer.set_step(0, tests)
+        for metric in logs[tests]:
+            writer.add_scalar(metric, logs[tests][metric].item())
 
 
 if __name__ == "__main__":
